@@ -1,0 +1,20 @@
+# Downloaded on demand by the app (not part of the repo)
+yt-dlp.exe
+*.part
+
+# Media saved by the app
+Downloads/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# PyInstaller build output
+build/
+dist/
+*.spec
+
+# OS junk
+Thumbs.db
+Desktop.ini

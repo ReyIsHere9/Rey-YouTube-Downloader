@@ -1,4 +1,4 @@
-# Easy YouTube Downloader
+# Rey YouTube Downloader
 
 A friendly little desktop app that downloads YouTube videos, music and
 subtitles for you. No sketchy websites, no ads, no account needed — paste a
@@ -7,6 +7,8 @@ link, hit download, done.
 It runs on the open-source [yt-dlp](https://github.com/yt-dlp/yt-dlp) engine,
 which does all the heavy lifting behind the scenes, and gives it a simple,
 dark YouTube-style interface.
+
+![Rey YouTube Downloader logo](logo.png)
 
 ---
 
@@ -58,21 +60,21 @@ produce all of them in one go.
 
 ### The easy way (recommended)
 
-1. Download `EasyYouTubeDownloader.exe` from the **Releases** page.
+1. Download `ReyYouTubeDownloader.exe` from the **Releases** page.
 2. Drop it in any folder you like — it'll create its own `Downloads` folder
    next to itself.
-3. Double-click. If you placed the app's `yt-dlp.exe` beside the exe it starts
+3. Double-click. If you placed `yt-dlp.exe` beside the exe it starts
    instantly; otherwise it grabs that file once on first launch (about 18 MB).
 
 ### Running from source
 
 ```bat
-git clone https://github.com/<you>/Easy-YouTube-Downloader.git
-cd Easy-YouTube-Downloader
+git clone https://github.com/<you>/Rey-YouTube-Downloader.git
+cd Rey-YouTube-Downloader
 python yt_gui.py
 ```
 
-(Windows users can also just double-click `Open Easy YouTube Downloader.bat`.)
+(Windows users can also just double-click `Open Rey YouTube Downloader.bat`.)
 
 ### Daily use in 20 seconds
 
@@ -94,6 +96,18 @@ python yt_gui.py
 | `wav`       | No compression, enormous files — only for editing     |
 | `original`  | Keep YouTube's audio exactly as-is, no conversion     |
 
+## The logo
+
+The maroon **R** monogram (with its curling tail and the quill feather tucked
+behind the letter) is generated from code — run `python make_logo.py` to
+re-render `logo.png` (shown in the app header and here) and `icon.ico` (the
+app/exe icon). It only needs Pillow:
+
+```
+python -m pip install pillow
+python make_logo.py
+```
+
 ## Making your own .exe (for developers)
 
 The app only uses Python's built-in libraries, so packaging it is simple:
@@ -103,7 +117,8 @@ python -m pip install pyinstaller
 build_exe.bat
 ```
 
-You'll find `EasyYouTubeDownloader.exe` in the `dist` folder afterwards.
+`build_exe.bat` regenerates the logo, then builds the single-file executable
+(with the maroon-R icon) into `dist\ReyYouTubeDownloader.exe`.
 
 ## Small print
 

@@ -1,12 +1,17 @@
 @echo off
 cd /d "%~dp0"
-echo Building EasyYouTubeDownloader.exe ...
+echo Building ReyYouTubeDownloader.exe ...
+echo Regenerating logo assets ...
+py -3 make_logo.py
 py -m pip install --upgrade pyinstaller
 py -m PyInstaller --noconfirm --clean --onefile --windowed ^
-    --name "EasyYouTubeDownloader" ^
+    --name "ReyYouTubeDownloader" ^
+    --icon "icon.ico" ^
+    --add-data "logo.png;." ^
+    --add-data "icon.ico;." ^
     --exclude-module tkinter.test ^
     "yt_gui.py"
 echo.
 echo Done. The exe is in the "dist" folder:
-echo   %~dp0dist\EasyYouTubeDownloader.exe
+echo   %~dp0dist\ReyYouTubeDownloader.exe
 pause

@@ -35,6 +35,12 @@ def app_dir():
     return os.path.dirname(os.path.abspath(__file__))
 
 
+def resource_path(name):
+    """Path to a bundled asset (logo/icon) whether frozen or running source."""
+    base = getattr(sys, "_MEIPASS", None) or app_dir()
+    return os.path.join(base, name)
+
+
 YDLP = os.path.join(app_dir(), "yt-dlp.exe")
 DEFAULT_OUT = os.path.join(app_dir(), "Downloads")
 YDLP_URL = ("https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe")
@@ -188,7 +194,7 @@ class Tile(tk.Frame):
 class YTdlpGUI(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.title("Easy YouTube Downloader")
+        self.title("Rey YouTube Downloader")
         self.configure(bg=BG)
         self.geometry("760x920")
         self.minsize(680, 700)
@@ -205,8 +211,17 @@ class YTdlpGUI(tk.Tk):
         self.ui_q = queue.Queue()      # (fn, args) posted from worker threads
         self._style()
         self._build_ui()
+        self._set_window_icon()
         self.after(120, self._drain_ui)
         self.after(500, self.check_ytdlp, False)
+
+    def _set_window_icon(self):
+        try:
+            ico = resource_path("icon.ico")
+            if os.path.exists(ico):
+                self.iconbitmap(ico)
+        except tk.TclError:
+            pass
 
     # ---------- thread-safe UI helpers ----------
     def _post(self, fn, *args):
@@ -455,11 +470,14 @@ class YTdlpGUI(tk.Tk):
     def _header(self):
         h = tk.Frame(self, bg=BG)
         h.pack(fill="x", padx=20, pady=(14, 8))
-        cv = tk.Canvas(h, width=34, height=34, bg=BG, highlightthickness=0)
-        cv.create_oval(1, 1, 33, 33, fill=RED, outline=RED)
-        cv.create_polygon(13, 10, 13, 24, 26, 17, fill="white")
-        cv.pack(side="left")
-        tk.Label(h, text="Easy YouTube", bg=BG, fg=TEXT, font=(FONT, 18, "bold")
+        try:
+            logo = tk.PhotoImage(file=resource_path("logo.png"))
+            self.logo_img = logo.subsample(14, 14)
+        except (tk.TclError, OSError):
+            self.logo_img = None
+        if self.logo_img is not None:
+            tk.Label(h, image=self.logo_img, bg=BG).pack(side="left")
+        tk.Label(h, text="Rey YouTube", bg=BG, fg=TEXT, font=(FONT, 18, "bold")
                  ).pack(side="left", padx=(10, 0))
         tk.Label(h, text="Downloader", bg=BG, fg=RED, font=(FONT, 18, "bold")
                  ).pack(side="left")

@@ -1,5 +1,5 @@
 @echo off
-title Easy YouTube Downloader
+title Rey YouTube Downloader
 cd /d "%~dp0"
 where py >nul 2>nul
 if %errorlevel%==0 (

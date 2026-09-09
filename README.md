@@ -1,8 +1,12 @@
 # Rey YouTube Downloader
 
-A friendly little desktop app that downloads YouTube videos, music and
-subtitles for you. No sketchy websites, no ads, no account needed — paste a
-link, hit download, done.
+A friendly desktop app that downloads YouTube videos, music and subtitles for
+you. No sketchy websites, no ads, no account needed — paste a link, hit
+download, done.
+
+> **Coming for Android:** a single-install **APK** is now available at
+> [Rey-YouTube-Downloader-Mobile](https://github.com/ReyIsHere9/Rey-YouTube-Downloader-Mobile)
+> and its [releases page](https://github.com/ReyIsHere9/Rey-YouTube-Downloader-Mobile/releases).
 
 It runs on the open-source [yt-dlp](https://github.com/yt-dlp/yt-dlp) engine,
 which does all the heavy lifting behind the scenes, and gives it a simple,

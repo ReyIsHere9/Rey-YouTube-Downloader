@@ -66,6 +66,11 @@ produce all of them in one go.
 3. Double-click. If you placed `yt-dlp.exe` beside the exe it starts
    instantly; otherwise it grabs that file once on first launch (about 18 MB).
 
+> **Portable package:** each release also ships a `portable` zip with the
+> `.exe` **and** `yt-dlp.exe` together, so it needs no first-run download.
+> The portable folder is a build output — it's generated on your machine by
+> `build_exe.bat` and published as a release attachment, never committed to git.
+
 ### Running from source
 
 ```bat

@@ -188,7 +188,7 @@ class Tile(tk.Frame):
 class YTdlpGUI(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.title("Our YouTube Downloader")
+        self.title("Easy YouTube Downloader")
         self.configure(bg=BG)
         self.geometry("760x920")
         self.minsize(680, 700)
@@ -459,7 +459,7 @@ class YTdlpGUI(tk.Tk):
         cv.create_oval(1, 1, 33, 33, fill=RED, outline=RED)
         cv.create_polygon(13, 10, 13, 24, 26, 17, fill="white")
         cv.pack(side="left")
-        tk.Label(h, text="Our YouTube", bg=BG, fg=TEXT, font=(FONT, 18, "bold")
+        tk.Label(h, text="Easy YouTube", bg=BG, fg=TEXT, font=(FONT, 18, "bold")
                  ).pack(side="left", padx=(10, 0))
         tk.Label(h, text="Downloader", bg=BG, fg=RED, font=(FONT, 18, "bold")
                  ).pack(side="left")

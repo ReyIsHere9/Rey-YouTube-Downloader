@@ -14,6 +14,7 @@ __pycache__/
 build/
 dist/
 *.spec
+portable/
 
 # OS junk
 Thumbs.db

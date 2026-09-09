@@ -1,10 +1,10 @@
-# Our YouTube Downloader
+# Easy YouTube Downloader
 
 A simple, friendly desktop app for downloading YouTube videos, audio and
 subtitles. It wraps the excellent [yt-dlp](https://github.com/yt-dlp/yt-dlp)
 engine in a dark, YouTube-flavoured GUI.
 
-![YouTube-style dark GUI with link box, found-videos picker and option cards]
+![Easy YouTube-style dark GUI with link box, found-videos picker and option cards]
 
 ## Features
 
@@ -42,21 +42,22 @@ engine in a dark, YouTube-flavoured GUI.
 
 ### Prebuilt .exe
 
-1. Download the latest `OurYouTubeDownloader.exe` from **Releases**.
+1. Download the latest `EasyYouTubeDownloader.exe` from **Releases**.
 2. Put it in any folder (e.g. `D:\Videos`). It will create a `Downloads`
    subfolder next to itself for saved files.
 3. Double-click to run. On first launch it checks the yt-dlp engine and offers
-   to install it if needed.
+   to install it if needed. For an instant start with no first-run download,
+   keep the app's `yt-dlp.exe` next to the `.exe`.
 
 ### From source
 
 ```bat
-git clone https://github.com/<you>/Our-YouTube-Downloader.git
-cd Our-YouTube-Downloader
+git clone https://github.com/<you>/Easy-YouTube-Downloader.git
+cd Easy-YouTube-Downloader
 python yt_gui.py
 ```
 
-Or double-click `Open Our YouTube Downloader.bat`.
+Or double-click `Open Easy YouTube Downloader.bat`.
 
 ### Using it
 
@@ -85,7 +86,7 @@ python -m pip install pyinstaller
 build_exe.bat
 ```
 
-The single-file executable is written to `dist\OurYouTubeDownloader.exe`.
+The single-file executable is written to `dist\EasyYouTubeDownloader.exe`.
 
 ## Notes
 

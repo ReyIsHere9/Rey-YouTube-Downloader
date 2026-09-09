@@ -1,5 +1,5 @@
 @echo off
-title Our YouTube Downloader
+title Easy YouTube Downloader
 cd /d "%~dp0"
 where py >nul 2>nul
 if %errorlevel%==0 (

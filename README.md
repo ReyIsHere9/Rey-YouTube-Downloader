@@ -10,6 +10,8 @@ dark YouTube-style interface.
 
 ![Rey YouTube Downloader logo](logo.png)
 
+![Rey YouTube Downloader screenshot](screenshot.png)
+
 ---
 
 ## What it can do

@@ -1,0 +1,48 @@
+name: build
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install PyInstaller
+        run: python -m pip install --upgrade pyinstaller
+
+      - name: Build the exe
+        run: python -m PyInstaller --noconfirm --clean --onefile --windowed --name "ReyYouTubeDownloader" --icon "icon.ico" --add-data "logo.png;." --add-data "icon.ico;." --exclude-module tkinter.test "yt_gui.py"
+
+      - name: Make the portable package
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path "portable" -Force | Out-Null
+          Copy-Item "dist\ReyYouTubeDownloader.exe" "portable\"
+          # bundle yt-dlp if one is committed; otherwise the app downloads it on first run
+          if (Test-Path "yt-dlp.exe") { Copy-Item "yt-dlp.exe" "portable\" }
+          Compress-Archive -Path "portable\*" -DestinationPath "ReyYouTubeDownloader-portable.zip"
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ReyYouTubeDownloader-windows
+          path: |
+            dist\ReyYouTubeDownloader.exe
+            ReyYouTubeDownloader-portable.zip
+
+      - name: Attach to release (on tag)
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist\ReyYouTubeDownloader.exe
+            ReyYouTubeDownloader-portable.zip
+          generate_release_notes: true

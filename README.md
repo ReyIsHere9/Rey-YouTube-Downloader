@@ -1,55 +1,70 @@
 # Easy YouTube Downloader
 
-A simple, friendly desktop app for downloading YouTube videos, audio and
-subtitles. It wraps the excellent [yt-dlp](https://github.com/yt-dlp/yt-dlp)
-engine in a dark, YouTube-flavoured GUI.
+A friendly little desktop app that downloads YouTube videos, music and
+subtitles for you. No sketchy websites, no ads, no account needed — paste a
+link, hit download, done.
 
-![Easy YouTube-style dark GUI with link box, found-videos picker and option cards]
+It runs on the open-source [yt-dlp](https://github.com/yt-dlp/yt-dlp) engine,
+which does all the heavy lifting behind the scenes, and gives it a simple,
+dark YouTube-style interface.
 
-## Features
+---
 
-- **Paste one or more links** (one per line) and press **Preview titles** to see
-  exactly what each link points to.
-- **Multi-video links** (playlists, channels, mixes) are shown as a checklist —
-  untick anything you don't want before downloading.
-- **Pick what to get** — tick any combination:
-  - **MP4** — video + audio in one file (the usual download)
-  - **Video only** — the picture track alone (no sound)
-  - **Audio only** — extract sound as `mp3`, `m4a`, `opus` or `wav`
-- **Subtitles** — embed into the MP4, or save as separate `.srt` / `.vtt` / `.ass`
-  files (srt/vtt are plain text you can open in Notepad).
-- **Quality limit** — Best / 2160p / 1440p / 1080p / 720p / 480p / 360p.
-- **Real progress bar**, live status line and a colour-coded activity log.
-- **Self-installing engine** — the app checks for `yt-dlp` on startup. The
-  top-right button shows the engine status (`yt-dlp: not found`,
-  `yt-dlp: installing…`, `yt-dlp: v2026.…`). If it's missing, the app offers to
-  download the official `yt-dlp.exe` straight into its own folder.
-- **Fully portable** — all paths are resolved relative to the app's own folder;
-  nothing is written outside of it.
+## What it can do
+
+- **Grab a video** as a normal MP4 (picture + sound together) — the everyday
+  download.
+- **Get just the video track** with no sound, if you want to use it in an
+  editor later.
+- **Extract music only** as `mp3`, `m4a`, `opus` or `wav`.
+- **Download subtitles** — either embedded right into the MP4 or saved as
+  separate `.srt` / `.vtt` / `.ass` files you can open in Notepad.
+- **Pick a quality cap** — from Best down to 360p, so you can save space.
+- **Handle playlists & multi-video links sensibly.** A "preview" step lists
+  every video a link points to, so you can untick the ones you don't want
+  before anything downloads. No surprises.
+
+You can tick several options at once (say, MP4 *and* audio-only) and it'll
+produce all of them in one go.
+
+## How it behaves
+
+- **It's fully portable.** The app never installs anything or touches folders
+  outside its own location. Saved videos go into a `Downloads` folder right
+  next to the app (you can change that in the GUI).
+- **It takes care of its own engine.** On startup it checks that `yt-dlp` is
+  around. If it's missing, it asks you and downloads the official `yt-dlp.exe`
+  into the app folder for you — nothing for you to configure.
+- **It shows you what's happening.** Real progress bar, current file name, and
+  a small activity log (green = good, yellow = warnings, red = problems).
 
 ## Requirements
 
-- **Windows** (the app is developed/tested on Windows).
-- **Python 3.9+** to run the source (`yt_gui.py`) — only the standard library is
-  used. No extra Python packages are needed.
-  - ...or just use the prebuilt **`.exe`** which needs no Python at all.
-- **ffmpeg** (optional but recommended) for MP4 merging, audio extraction and
-  thumbnail/subtitle embedding. Install it once with:
-  `winget install Gyan.FFmpeg`
-- Internet connection on first run (to fetch `yt-dlp.exe` if it isn't present).
+- Windows.
+- To run the prebuilt app: nothing. Just the `.exe`.
+- To run from source instead: Python 3.9+ (no extra packages needed).
+- **ffmpeg (recommended)** — needed for MP4 merging, audio extraction and
+  embedding thumbnails/subtitles. Install once with:
+
+  ```
+  winget install Gyan.FFmpeg
+  ```
+
+  Without it, basic "single-file" downloads still work, but the extras won't.
+
+---
 
 ## Getting started
 
-### Prebuilt .exe
+### The easy way (recommended)
 
-1. Download the latest `EasyYouTubeDownloader.exe` from **Releases**.
-2. Put it in any folder (e.g. `D:\Videos`). It will create a `Downloads`
-   subfolder next to itself for saved files.
-3. Double-click to run. On first launch it checks the yt-dlp engine and offers
-   to install it if needed. For an instant start with no first-run download,
-   keep the app's `yt-dlp.exe` next to the `.exe`.
+1. Download `EasyYouTubeDownloader.exe` from the **Releases** page.
+2. Drop it in any folder you like — it'll create its own `Downloads` folder
+   next to itself.
+3. Double-click. If you placed the app's `yt-dlp.exe` beside the exe it starts
+   instantly; otherwise it grabs that file once on first launch (about 18 MB).
 
-### From source
+### Running from source
 
 ```bat
 git clone https://github.com/<you>/Easy-YouTube-Downloader.git
@@ -57,46 +72,48 @@ cd Easy-YouTube-Downloader
 python yt_gui.py
 ```
 
-Or double-click `Open Easy YouTube Downloader.bat`.
+(Windows users can also just double-click `Open Easy YouTube Downloader.bat`.)
 
-### Using it
+### Daily use in 20 seconds
 
-1. Paste link(s), one per line.
-2. Press **Preview titles** → the app lists what each link resolves to
-   (handy for playlists).
-3. Untick any videos you don't want.
-4. Tick what to produce under **What to get**.
-5. Optionally tick **Subtitles** and pick a format/language.
-6. Press **Download**.
+1. Paste a link (or several, one per line).
+2. Click **Preview titles** to see what it points to.
+3. Untick anything you don't want.
+4. Tick what to get: **MP4**, **Video only**, **Audio only**.
+5. Choose your audio format (see the cheat-sheet below) if extracting music.
+6. Optionally tick **Subtitles**.
+7. Hit **Download** and watch it go.
 
-## Audio format cheat-sheet (for music)
+## Picking an audio format for music
 
-| Format     | Use it for                                                        |
-| ---------- | ----------------------------------------------------------------- |
-| `mp3`      | Most compatible — recommended for music                           |
-| `m4a`      | Slightly better quality at the same size (AAC)                    |
-| `opus`     | Best sound quality, fewer devices support it                      |
-| `wav`      | Lossless, very large — only for editing                           |
-| `original` | Keep YouTube's original audio, no conversion                      |
+| Pick        | When to use it                                        |
+| ----------- | ----------------------------------------------------- |
+| `mp3`       | Default choice — plays literally everywhere            |
+| `m4a`       | Slightly better sound per megabyte (AAC)              |
+| `opus`      | Best quality, but some older players won't play it    |
+| `wav`       | No compression, enormous files — only for editing     |
+| `original`  | Keep YouTube's audio exactly as-is, no conversion     |
 
-## Building the .exe yourself
+## Making your own .exe (for developers)
+
+The app only uses Python's built-in libraries, so packaging it is simple:
 
 ```bat
 python -m pip install pyinstaller
 build_exe.bat
 ```
 
-The single-file executable is written to `dist\EasyYouTubeDownloader.exe`.
+You'll find `EasyYouTubeDownloader.exe` in the `dist` folder afterwards.
 
-## Notes
+## Small print
 
-- The app only downloads media; please respect content owners and the terms of
-  the sites you use it with.
-- For very long playlists the preview list is capped at the first 250 entries.
-- The `yt-dlp.exe` engine is downloaded on demand from the official yt-dlp
-  GitHub release and is not bundled in this repository.
+- Please only download things you have the right to, and respect the sites you
+  use. The app is a download tool — it doesn't host or re-upload anything.
+- Very long playlists: the preview list stops at the first 250 entries to keep
+  the app snappy.
+- This project wraps `yt-dlp`, which has its own license — see
+  [yt-dlp's repo](https://github.com/yt-dlp/yt-dlp#license).
 
 ## License
 
-[MIT](LICENSE). The bundled wrapper (`yt-dlp`) has its own license — see
-https://github.com/yt-dlp/yt-dlp#license.
+[MIT](LICENSE). Do what you like with it.

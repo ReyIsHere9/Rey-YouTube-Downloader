@@ -472,7 +472,7 @@ class YTdlpGUI(tk.Tk):
         h.pack(fill="x", padx=20, pady=(14, 8))
         try:
             logo = tk.PhotoImage(file=resource_path("logo.png"))
-            f = max(1, logo.height() // 36)
+            f = max(1, logo.height() // 54)
             self.logo_img = logo.subsample(f, f)
         except (tk.TclError, OSError):
             self.logo_img = None

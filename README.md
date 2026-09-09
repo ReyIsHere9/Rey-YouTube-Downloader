@@ -8,9 +8,13 @@ It runs on the open-source [yt-dlp](https://github.com/yt-dlp/yt-dlp) engine,
 which does all the heavy lifting behind the scenes, and gives it a simple,
 dark YouTube-style interface.
 
-![Rey YouTube Downloader logo](logo.png)
+<p align="center">
+  <img src="logo.png" width="220" alt="Rey YouTube Downloader logo">
+</p>
 
-![Rey YouTube Downloader screenshot](screenshot.png)
+<p align="center">
+  <img src="screenshot.png" width="640" alt="Rey YouTube Downloader screenshot">
+</p>
 
 ---
 

@@ -19,6 +19,3 @@ portable/
 # OS junk
 Thumbs.db
 Desktop.ini
-
-# Local logo QA preview (regenerate with make_logo.py)
-logo_preview.png

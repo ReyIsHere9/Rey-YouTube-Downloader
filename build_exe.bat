@@ -1,8 +1,6 @@
 @echo off
 cd /d "%~dp0"
 echo Building ReyYouTubeDownloader.exe ...
-echo Preparing logo + icon assets ...
-py -3 assets.py
 py -m pip install --upgrade pyinstaller
 py -m PyInstaller --noconfirm --clean --onefile --windowed ^
     --name "ReyYouTubeDownloader" ^

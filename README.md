@@ -99,18 +99,10 @@ python yt_gui.py
 ## The logo
 
 The maroon **R** monogram (with its curling tail and the quill feather tucked
-behind the letter) comes in two flavours, both shipped in this repo:
+behind the letter) ships as a ready-to-use asset, so it works out of the box:
 
-- **`Rey detailed.png`** — used as the logo in the app header and here.
-- **`Rey Flat.png`** — used as the app / `.exe` icon.
-
-`assets.py` copies the detailed one to `logo.png` and builds the multi-size
-`icon.ico` from the flat one whenever you package:
-
-```
-python -m pip install pillow
-python assets.py
-```
+- **`logo.png`** — used as the logo in the app header and here.
+- **`icon.ico`** — used as the app / `.exe` icon.
 
 ## Making your own .exe (for developers)
 

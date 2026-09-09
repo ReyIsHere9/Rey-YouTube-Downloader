@@ -28,8 +28,12 @@ jobs:
         run: |
           New-Item -ItemType Directory -Path "portable" -Force | Out-Null
           Copy-Item "dist\ReyYouTubeDownloader.exe" "portable\"
-          # bundle yt-dlp if one is committed; otherwise the app downloads it on first run
-          if (Test-Path "yt-dlp.exe") { Copy-Item "yt-dlp.exe" "portable\" }
+          # bundle the yt-dlp engine (it is gitignored, so fetch it here)
+          if (-not (Test-Path "yt-dlp.exe")) {
+            Invoke-WebRequest -Uri "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe" -OutFile "portable\yt-dlp.exe"
+          } else {
+            Copy-Item "yt-dlp.exe" "portable\"
+          }
           Compress-Archive -Path "portable\*" -DestinationPath "ReyYouTubeDownloader-portable.zip"
 
       - name: Upload artifacts

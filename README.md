@@ -99,13 +99,17 @@ python yt_gui.py
 ## The logo
 
 The maroon **R** monogram (with its curling tail and the quill feather tucked
-behind the letter) is generated from code — run `python make_logo.py` to
-re-render `logo.png` (shown in the app header and here) and `icon.ico` (the
-app/exe icon). It only needs Pillow:
+behind the letter) comes in two flavours, both shipped in this repo:
+
+- **`Rey detailed.png`** — used as the logo in the app header and here.
+- **`Rey Flat.png`** — used as the app / `.exe` icon.
+
+`assets.py` copies the detailed one to `logo.png` and builds the multi-size
+`icon.ico` from the flat one whenever you package:
 
 ```
 python -m pip install pillow
-python make_logo.py
+python assets.py
 ```
 
 ## Making your own .exe (for developers)
@@ -117,8 +121,8 @@ python -m pip install pyinstaller
 build_exe.bat
 ```
 
-`build_exe.bat` regenerates the logo, then builds the single-file executable
-(with the maroon-R icon) into `dist\ReyYouTubeDownloader.exe`.
+`build_exe.bat` prepares the logo/icon assets, then builds the single-file
+executable (with the maroon-R icon) into `dist\ReyYouTubeDownloader.exe`.
 
 ## Small print
 

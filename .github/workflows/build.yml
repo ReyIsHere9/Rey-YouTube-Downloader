@@ -35,6 +35,13 @@ jobs:
           } else {
             Copy-Item "yt-dlp.exe" "portable\"
           }
+          # bundle ffmpeg (for merging / conversion) so the folder is self-contained
+          $ff = Join-Path $env:TEMP "rey_ff"
+          $z = Join-Path $env:TEMP "rey_ff.zip"
+          Invoke-WebRequest -Uri "https://github.com/BtbN/FFmpeg-Builds/releases/latest/download/ffmpeg-master-latest-win64-gpl.zip" -OutFile $z
+          Expand-Archive -Path $z -DestinationPath $ff -Force
+          New-Item -ItemType Directory -Path "portable\ffmpeg" -Force | Out-Null
+          (Get-ChildItem $ff -Recurse -Filter ffmpeg.exe | Select-Object -First 1).CopyTo("portable\ffmpeg\ffmpeg.exe")
           Compress-Archive -Path "portable\*" -DestinationPath "ReyYouTubeDownloader-portable.zip"
 
       - name: Upload artifacts

@@ -48,7 +48,11 @@ def resource_path(name):
 
 
 def _find_ffmpeg():
-    """Find ffmpeg on PATH, or in common winget / manual install folders."""
+    """Find ffmpeg: in the app folder first, then PATH, then common installs."""
+    for c in (os.path.join(FFMPEG_DIR, "ffmpeg.exe"),
+              os.path.join(app_dir(), "ffmpeg.exe")):
+        if os.path.exists(c):
+            return c
     p = shutil.which("ffmpeg")
     if p:
         return p
@@ -71,6 +75,9 @@ def _find_ffmpeg():
 YDLP = os.path.join(app_dir(), "yt-dlp.exe")
 DEFAULT_OUT = os.path.join(app_dir(), "Downloads")
 YDLP_URL = ("https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe")
+FFMPEG_DIR = os.path.join(app_dir(), "ffmpeg")
+FFMPEG_URL = ("https://github.com/BtbN/FFmpeg-Builds/releases/latest/download/"
+              "ffmpeg-master-latest-win64-gpl.zip")
 
 QUALITIES = ["Best", "2160p (4K)", "1440p", "1080p", "720p", "480p", "360p"]
 AUDIO_FMTS = ["mp3", "m4a", "opus", "wav", "original (no conversion)"]
@@ -256,11 +263,110 @@ class YTdlpGUI(tk.Tk):
         if self.ffmpeg:
             self._log(f"ffmpeg found: {self.ffmpeg}", "ok")
         else:
-            self._log("ffmpeg was NOT found. MP4 merging, audio conversion, and "
-                      "thumbnail/subtitle embedding need it. Install it with:\n"
-                      "    winget install Gyan.FFmpeg\n"
-                      "then reopen the app. (Basic single-file downloads may "
-                      "still work.)", "err")
+            self._log("ffmpeg was NOT found \u2014 click the \u201cffmpeg: not found\u201d "
+                      "button in the header to download it, or run "
+                      "'winget install Gyan.FFmpeg'. MP4 merging, audio conversion "
+                      "and thumbnail/subtitle embedding need it.", "err")
+        self._refresh_ffmpeg_chip()
+
+    def _bar_indeterminate(self):
+        self.bar.configure(mode="indeterminate")
+        self.bar.start(12)
+
+    def _bar_determinate(self):
+        self.bar.stop()
+        self.bar.configure(mode="determinate", value=0)
+
+    def _apply_ff_chip(self, text, color, state="normal"):
+        try:
+            self.ff_chip.configure(text=text, fg=color, state=state)
+        except tk.TclError:
+            pass
+
+    def _refresh_ffmpeg_chip(self):
+        if self.ffmpeg:
+            self._post(self._apply_ff_chip, f"ffmpeg: {self._ffmpeg_version(self.ffmpeg)}",
+                       GREEN, "normal")
+        else:
+            self._post(self._apply_ff_chip, "ffmpeg: not found", ERR, "normal")
+
+    def _ffmpeg_version(self, path):
+        try:
+            r = subprocess.run([path, "-version"], stdout=subprocess.PIPE,
+                               stderr=subprocess.STDOUT, text=True, timeout=15,
+                               creationflags=subprocess.CREATE_NO_WINDOW)
+            lines = (r.stdout or "").splitlines()
+            parts = lines[0].split() if lines else []
+            if "version" in parts:
+                token = parts[parts.index("version") + 1]
+                m = re.search(r"\d+(?:\.\d+)+", token)
+                if m:
+                    return m.group(0)
+        except Exception:
+            pass
+        return "ok"
+
+    def _ffmpeg_click(self):
+        if self.ffmpeg:
+            self.ffmpeg = _find_ffmpeg()
+            self._refresh_ffmpeg_chip()
+        else:
+            self._download_ffmpeg()
+
+    def _download_ffmpeg(self):
+        if getattr(self, "_ff_busy", False):
+            return
+        if not messagebox.askyesno(
+                "Install ffmpeg",
+                "ffmpeg wasn't found.\n\nDownload it from the official ffmpeg "
+                "GitHub mirror into the app folder? (~80 MB, one time)"):
+            return
+        self._ff_busy = True
+        self._apply_ff_chip("ffmpeg: downloading\u2026", WARN, "disabled")
+        self._set_status("Downloading ffmpeg\u2026")
+        self._bar_indeterminate()
+        threading.Thread(target=self._do_download_ffmpeg, daemon=True).start()
+
+    def _do_download_ffmpeg(self):
+        import tempfile
+        import zipfile
+        tmp = os.path.join(tempfile.gettempdir(), "rey_ffmpeg.zip")
+        try:
+            req = urllib.request.Request(FFMPEG_URL, headers={"User-Agent": "Mozilla/5.0"})
+            with urllib.request.urlopen(req, timeout=300) as r, open(tmp, "wb") as f:
+                shutil.copyfileobj(r, f, 512 * 1024)
+            os.makedirs(FFMPEG_DIR, exist_ok=True)
+            with zipfile.ZipFile(tmp) as z:
+                for name in z.namelist():
+                    base = os.path.basename(name)
+                    if base in ("ffmpeg.exe", "ffprobe.exe"):
+                        with z.open(name) as src, open(os.path.join(FFMPEG_DIR, base), "wb") as dst:
+                            shutil.copyfileobj(src, dst)
+            self._log(f"ffmpeg installed to {FFMPEG_DIR}", "ok")
+            self.ffmpeg = _find_ffmpeg()
+        except Exception as e:
+            self._log(f"Could not download ffmpeg: {e}", "err")
+        finally:
+            try:
+                os.remove(tmp)
+            except OSError:
+                pass
+            self._ff_busy = False
+            self._post(self._bar_determinate)
+            self._post(self._refresh_ffmpeg_chip)
+
+    def _set_busy(self, on):
+        """Lock the interactive controls while a lookup is running."""
+        state = "disabled" if on else "normal"
+        for w in (getattr(self, "prev_btn", None), getattr(self, "dl", None)):
+            if w is not None:
+                w.configure(state=state)
+        if on:
+            self.prev_btn.configure(fg=MUTED)
+            self._bar_indeterminate()
+        else:
+            self.prev_btn.configure(fg=TEXT)
+            self._bar_determinate()
 
     # ---------- thread-safe UI helpers ----------
     def _post(self, fn, *args):
@@ -341,13 +447,13 @@ class YTdlpGUI(tk.Tk):
                  font=(FONT, 8, "bold")).pack(side="left")
         tk.Label(url_hdr, text="   one per line", bg=BG, fg="#5A5A5A",
                  font=(FONT, 8)).pack(side="left")
-        prev = tk.Button(url_hdr, text="Preview titles", command=self.preview,
-                         bg=CARD_ON, fg=TEXT, relief="flat", font=(FONT, 8, "bold"),
-                         cursor="hand2", padx=10, pady=2, bd=0,
-                         activebackground=HOVER, activeforeground=TEXT)
-        prev.pack(side="right")
-        ToolTip(prev, "Fetch the video title(s) behind each link. "
-                      "Useful when a link points to a playlist or many videos.")
+        self.prev_btn = tk.Button(url_hdr, text="Preview titles", command=self.preview,
+                                  bg=CARD_ON, fg=TEXT, relief="flat", font=(FONT, 8, "bold"),
+                                  cursor="hand2", padx=10, pady=2, bd=0,
+                                  activebackground=HOVER, activeforeground=TEXT)
+        self.prev_btn.pack(side="right")
+        ToolTip(self.prev_btn, "Fetch the video title(s) behind each link. "
+                               "Useful when a link points to a playlist or many videos.")
 
         self.url_box = tk.Text(body, height=2, bg=PANEL, fg=TEXT, relief="flat",
                                insertbackground=TEXT, font=(FONT_MONO, 10),
@@ -563,6 +669,21 @@ class YTdlpGUI(tk.Tk):
         ToolTip(self.yt_chip, "Checks that the yt-dlp engine is present and working. "
                               "If it\u2019s missing, this button installs it for you "
                               "(click it any time to verify / reinstall).")
+
+        self.ff_chip = tk.Button(h, text="ffmpeg: \u2026", command=self._ffmpeg_click,
+                                 bg="#262626", fg=TEXT, relief="flat",
+                                 font=(FONT, 8, "bold"), cursor="hand2", bd=0,
+                                 padx=8, pady=3, activebackground=HOVER,
+                                 activeforeground=TEXT)
+        self.ff_chip.pack(side="right", padx=(6, 0))
+        ToolTip(self.ff_chip, "ffmpeg is needed to merge video + audio, convert "
+                              "audio, and embed thumbnails/subtitles. If it\u2019s "
+                              "missing, click this to download it into the app "
+                              "folder (official ffmpeg GitHub mirror).")
+
+        self.py_chip = tk.Label(h, text="Py %d.%d" % sys.version_info[:2],
+                                bg=BG, fg=MUTED, font=(FONT, 8, "bold"))
+        self.py_chip.pack(side="right", padx=(6, 6))
         line = tk.Frame(self, bg="#262626", height=1)
         line.pack(fill="x")
 
@@ -763,6 +884,11 @@ class YTdlpGUI(tk.Tk):
         if not self.require_engine("preview"):
             return
         self.previewing = True
+        self._set_busy(True)
+        try:
+            self.url_box.configure(state="disabled")
+        except tk.TclError:
+            pass
         self._set_status("Looking up link(s)\u2026")
         threading.Thread(target=self._fetch_all, args=(urls,), daemon=True).start()
 
@@ -804,6 +930,11 @@ class YTdlpGUI(tk.Tk):
 
     def _preview_done(self, total):
         self.previewing = False
+        self._set_busy(False)
+        try:
+            self.url_box.configure(state="normal")
+        except tk.TclError:
+            pass
         self.sig = self._text_sig()
         # drop links that resolved to nothing but keep them in list w/o entries
         self.links = [l for l in self.links if l["entries"]]

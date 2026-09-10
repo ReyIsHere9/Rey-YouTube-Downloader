@@ -47,6 +47,27 @@ def resource_path(name):
     return os.path.join(base, name)
 
 
+def _find_ffmpeg():
+    """Find ffmpeg on PATH, or in common winget / manual install folders."""
+    p = shutil.which("ffmpeg")
+    if p:
+        return p
+    import glob
+    la = os.environ.get("LOCALAPPDATA", "")
+    cands = []
+    if la:
+        cands.append(os.path.join(la, "Microsoft", "WinGet", "Links", "ffmpeg.exe"))
+        cands += glob.glob(os.path.join(la, "Microsoft", "WinGet", "Packages",
+                                        "Gyan.FFmpeg*", "**", "bin", "ffmpeg.exe"),
+                           recursive=True)
+    cands += [r"C:\ffmpeg\bin\ffmpeg.exe",
+              r"C:\Program Files\ffmpeg\bin\ffmpeg.exe"]
+    for c in cands:
+        if os.path.exists(c):
+            return c
+    return None
+
+
 YDLP = os.path.join(app_dir(), "yt-dlp.exe")
 DEFAULT_OUT = os.path.join(app_dir(), "Downloads")
 YDLP_URL = ("https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe")
@@ -203,11 +224,12 @@ class YTdlpGUI(tk.Tk):
         self.title("Rey YouTube Downloader")
         self.configure(bg=BG)
         self.geometry("760x920")
-        self.minsize(680, 700)
+        self.minsize(600, 480)
         self.downloading = False
         self.previewing = False
         self.yt_state = "checking"      # checking | ok:<ver> | missing | busy
         self.resume_after_install = None
+        self.ffmpeg = _find_ffmpeg()
         self.links = []            # [{'url','entries':[(idx,id,title)],'vars':[]}]
         self.sig = None            # signature of url text the preview reflects
         self.plan = []             # [(label, argv)] ready to run
@@ -220,6 +242,7 @@ class YTdlpGUI(tk.Tk):
         self._set_window_icon()
         self.after(120, self._drain_ui)
         self.after(500, self.check_ytdlp, False)
+        self.after(650, self._check_ffmpeg)
 
     def _set_window_icon(self):
         try:
@@ -228,6 +251,16 @@ class YTdlpGUI(tk.Tk):
                 self.iconbitmap(ico)
         except tk.TclError:
             pass
+
+    def _check_ffmpeg(self):
+        if self.ffmpeg:
+            self._log(f"ffmpeg found: {self.ffmpeg}", "ok")
+        else:
+            self._log("ffmpeg was NOT found. MP4 merging, audio conversion, and "
+                      "thumbnail/subtitle embedding need it. Install it with:\n"
+                      "    winget install Gyan.FFmpeg\n"
+                      "then reopen the app. (Basic single-file downloads may "
+                      "still work.)", "err")
 
     # ---------- thread-safe UI helpers ----------
     def _post(self, fn, *args):
@@ -275,9 +308,31 @@ class YTdlpGUI(tk.Tk):
         self._header()
         self._build_help()
 
-        self.body = tk.Frame(self, bg=BG)
-        self.body.pack(fill="both", expand=True, padx=20, pady=(6, 0))
-        body = self.body
+        # scrollable body (so nothing falls off small screens)
+        outer = tk.Frame(self, bg=BG)
+        outer.pack(fill="both", expand=True)
+        self.body_outer = outer
+        self.body_canvas = tk.Canvas(outer, bg=BG, highlightthickness=0)
+        self.body_vsb = ttk.Scrollbar(outer, orient="vertical",
+                                      command=self.body_canvas.yview,
+                                      style="Vertical.TScrollbar")
+        self.body_canvas.configure(yscrollcommand=self.body_vsb.set)
+        self.body_vsb.pack(side="right", fill="y")
+        self.body_canvas.pack(side="left", fill="both", expand=True)
+
+        self.body = tk.Frame(self.body_canvas, bg=BG)
+        self._body_win = self.body_canvas.create_window((0, 0), window=self.body, anchor="nw")
+        self.body.bind(
+            "<Configure>",
+            lambda e: self.body_canvas.configure(scrollregion=self.body_canvas.bbox("all")))
+        self.body_canvas.bind(
+            "<Configure>",
+            lambda e: self.body_canvas.itemconfigure(self._body_win, width=e.width))
+        self.bind_all("<MouseWheel>", self._on_main_wheel)
+
+        pad = tk.Frame(self.body, bg=BG)
+        pad.pack(fill="both", expand=True, padx=20, pady=(6, 12))
+        body = pad
 
         # --- URL ---
         url_hdr = tk.Frame(body, bg=BG)
@@ -463,10 +518,11 @@ class YTdlpGUI(tk.Tk):
 
         # --- activity ---
         self._section(body, "Activity")
-        self.log = tk.Text(body, bg="#0B0B0B", fg="#C9C9C9", relief="flat", state="disabled",
+        self.log = tk.Text(body, height=12, bg="#0B0B0B", fg="#C9C9C9", relief="flat",
+                           state="disabled",
                            font=(FONT_MONO, 8), padx=8, pady=6,
                            highlightthickness=1, highlightbackground=BORD)
-        self.log.pack(fill="both", expand=True)
+        self.log.pack(fill="x")
         self.log.tag_configure("ok", foreground=GREEN)
         self.log.tag_configure("warn", foreground=WARN)
         self.log.tag_configure("err", foreground=ERR)
@@ -528,7 +584,7 @@ class YTdlpGUI(tk.Tk):
             self.help_card.pack_forget()
             self.help_on = False
         else:
-            self.help_card.pack(fill="x", padx=20, pady=(8, 0), before=self.body)
+            self.help_card.pack(fill="x", padx=20, pady=(8, 0), before=self.body_outer)
             self.help_on = True
 
     def _section(self, parent, text):
@@ -541,6 +597,15 @@ class YTdlpGUI(tk.Tk):
     # ---------------- misc ----------------
     def _wheel(self, e):
         self.found_canvas.yview_scroll(int(-e.delta / 120), "units")
+
+    def _on_main_wheel(self, e):
+        # let the found-videos list scroll itself when the pointer is over it
+        w = self.winfo_containing(e.x_root, e.y_root)
+        while w is not None:
+            if w is getattr(self, "found_canvas", None):
+                return
+            w = getattr(w, "master", None)
+        self.body_canvas.yview_scroll(int(-e.delta / 120), "units")
 
     def _sync(self):
         has_video = self.var_mp4.get() or self.var_vid.get()
@@ -899,8 +964,11 @@ class YTdlpGUI(tk.Tk):
             os.makedirs(out, exist_ok=True)
         except OSError:
             pass
-        return [YDLP, "--newline", "--no-warnings", "--no-mtime",
+        args = [YDLP, "--newline", "--no-warnings", "--no-mtime",
                 "-P", out, "-o", "%(title).120s [%(id)s].%(ext)s"]
+        if getattr(self, "ffmpeg", None):
+            args += ["--ffmpeg-location", self.ffmpeg]
+        return args
 
     def _quality(self, a):
         h = res_of(self.qcombo.get())

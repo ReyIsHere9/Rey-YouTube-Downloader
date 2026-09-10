@@ -10,8 +10,8 @@ echo    portable\ReyYouTubeDownloader.exe  (app + yt-dlp.exe, ready to share)
 echo ============================================================
 echo.
 
-echo [1/3] Ensuring PyInstaller is installed ...
-py -m pip install --upgrade pyinstaller >nul || py -m pip install pyinstaller
+echo [1/3] Ensuring PyInstaller + Pillow are installed ...
+py -m pip install --upgrade pyinstaller pillow >nul || py -m pip install pyinstaller pillow
 echo.
 
 echo [2/3] Building the single-file executable ...

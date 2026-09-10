@@ -65,6 +65,9 @@ produce all of them in one go.
   ```
 
   Without it, basic "single-file" downloads still work, but the extras won't.
+  The launcher (`Open Rey YouTube Downloader.bat`) **checks for Python, ffmpeg
+  and yt-dlp on start and installs any that are missing** (ffmpeg/Python via
+  `winget`) before launching — so you can usually just run it and go.
 
 ---
 

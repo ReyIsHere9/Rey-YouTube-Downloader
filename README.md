@@ -32,9 +32,10 @@ dark YouTube-style interface.
 - **Download subtitles** — either embedded right into the MP4 or saved as
   separate `.srt` / `.vtt` / `.ass` files you can open in Notepad.
 - **Pick a quality cap** — from Best down to 360p, so you can save space.
-- **Handle playlists & multi-video links sensibly.** A "preview" step lists
-  every video a link points to, so you can untick the ones you don't want
-  before anything downloads. No surprises.
+- **Handle playlists & multi-video links sensibly.** A **Preview titles** step
+  lists every video a link points to — with **thumbnails**, titles and
+  **checkboxes** — so you can untick the ones you don't want before anything
+  downloads. No surprises.
 
 You can tick several options at once (say, MP4 *and* audio-only) and it'll
 produce all of them in one go.
@@ -54,7 +55,8 @@ produce all of them in one go.
 
 - Windows.
 - To run the prebuilt app: nothing. Just the `.exe`.
-- To run from source instead: Python 3.9+ (no extra packages needed).
+- To run from source instead: Python 3.9+ (no required extra packages —
+  **Pillow** is optional and only used for the preview thumbnails).
 - **ffmpeg (recommended)** — needed for MP4 merging, audio extraction and
   embedding thumbnails/subtitles. Install once with:
 
@@ -93,8 +95,9 @@ python yt_gui.py
 
 ### Daily use in 20 seconds
 
-1. Paste a link (or several, one per line).
-2. Click **Preview titles** to see what it points to.
+1. Paste a link (or several, one per line). Right-click the box for
+   **Copy / Paste / Select all**.
+2. Click **Preview titles** to see thumbnails + titles of what it points to.
 3. Untick anything you don't want.
 4. Tick what to get: **MP4**, **Video only**, **Audio only**.
 5. Choose your audio format (see the cheat-sheet below) if extracting music.

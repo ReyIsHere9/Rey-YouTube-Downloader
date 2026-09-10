@@ -9,6 +9,12 @@ import tkinter as tk
 import urllib.request
 from tkinter import ttk, filedialog, messagebox
 
+try:
+    from PIL import Image, ImageTk
+    HAVE_PIL = True
+except Exception:
+    HAVE_PIL = False
+
 # ---------------- palette ----------------
 BG      = "#0F0F0F"
 PANEL   = "#141414"
@@ -465,6 +471,10 @@ class YTdlpGUI(tk.Tk):
         self.log.tag_configure("warn", foreground=WARN)
         self.log.tag_configure("err", foreground=ERR)
         self.log.tag_configure("head", foreground=TEXT)
+
+        # right-click Cut/Copy/Paste menus on the text fields
+        for w in (self.url_box, self.sub_box, self.dir_box, self.log):
+            self._add_context_menu(w)
         self._sync()
 
     def _header(self):
@@ -750,27 +760,102 @@ class YTdlpGUI(tk.Tk):
     def _render_found(self):
         for w in self.found_inner.winfo_children():
             w.destroy()
+        self._thumbs = []
+        self.found_card.pack(fill="x", pady=(0, 6))
         if not self.links:
-            self.found_card.pack_forget()
+            tk.Label(self.found_inner,
+                     text="No videos found. Check the link, then press Preview titles again.",
+                     bg=PANEL, fg=WARN, anchor="w", font=(FONT, 8),
+                     wraplength=620, justify="left").pack(fill="x", padx=8, pady=8)
+            self._count_selected()
             return
         for li, l in enumerate(self.links, 1):
             if len(self.links) > 1:
                 tk.Label(self.found_inner, text=f"Link {li}", bg="#191919", fg=MUTED,
                          anchor="w", font=(FONT, 8, "bold")).pack(fill="x", padx=6, pady=(6, 1))
             l["vars"] = []
-            for idx, _vid, title in l["entries"]:
+            for idx, vid, title in l["entries"]:
+                row = tk.Frame(self.found_inner, bg=PANEL)
+                row.pack(fill="x", anchor="w", pady=2)
+                holder = tk.Frame(row, bg="#191919", width=112, height=63)
+                holder.pack(side="left", padx=(6, 8))
+                holder.pack_propagate(False)
+                thumb = tk.Label(holder, bg="#191919")
+                thumb.pack(fill="both", expand=True)
                 var = tk.BooleanVar(value=True)
                 l["vars"].append(var)
                 cb = tk.Checkbutton(
-                    self.found_inner, variable=var, command=self._count_selected,
+                    row, variable=var, command=self._count_selected,
                     text=f"{idx}.  {short(title)}", bg=PANEL, fg="#D9D9D9",
                     selectcolor=RED, activebackground=PANEL,
                     activeforeground=TEXT, font=(FONT, 8), anchor="w",
-                    highlightthickness=0, wraplength=620, justify="left",
-                    padx=8, pady=0)
-                cb.pack(fill="x", anchor="w", pady=1)
-        self.found_card.pack(fill="x", pady=(0, 6))
+                    highlightthickness=0, wraplength=500, justify="left",
+                    padx=6, pady=0)
+                cb.pack(side="left", fill="x", expand=True, anchor="w")
+                if HAVE_PIL:
+                    self._load_thumb(vid, thumb)
         self._count_selected()
+
+    def _load_thumb(self, vid, label):
+        if not HAVE_PIL or not vid or vid == "NA":
+            return
+        url = f"https://i.ytimg.com/vi/{vid}/mqdefault.jpg"
+
+        def work():
+            try:
+                req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+                data = urllib.request.urlopen(req, timeout=10).read()
+            except Exception:
+                return
+            self._post(self._set_thumb, label, data)
+
+        threading.Thread(target=work, daemon=True).start()
+
+    def _set_thumb(self, label, data):
+        try:
+            import io
+            img = Image.open(io.BytesIO(data)).convert("RGB")
+            img.thumbnail((112, 63))
+            ph = ImageTk.PhotoImage(img)
+            self._thumbs.append(ph)
+            label.configure(image=ph)
+        except Exception:
+            pass
+
+    def _select_all(self, widget):
+        try:
+            if isinstance(widget, tk.Text):
+                widget.tag_add("sel", "1.0", "end")
+            else:
+                widget.select_range(0, "end")
+        except tk.TclError:
+            pass
+        return "break"
+
+    def _add_context_menu(self, widget):
+        menu = tk.Menu(widget, tearoff=0, bg=CARD, fg=TEXT, bd=0,
+                       activebackground=RED, activeforeground="#FFFFFF")
+
+        def gen(seq):
+            return lambda: widget.event_generate(seq)
+
+        menu.add_command(label="Cut", command=gen("<<Cut>>"))
+        menu.add_command(label="Copy", command=gen("<<Copy>>"))
+        menu.add_command(label="Paste", command=gen("<<Paste>>"))
+        menu.add_separator()
+        menu.add_command(label="Select all", command=lambda: self._select_all(widget))
+
+        def popup(event):
+            try:
+                widget.focus_set()
+            except Exception:
+                pass
+            menu.tk_popup(event.x_root, event.y_root)
+            return "break"
+
+        widget.bind("<Button-3>", popup, add="+")
+        widget.bind("<Button-2>", popup, add="+")
+        widget.bind("<Control-a>", lambda e, w=widget: self._select_all(w), add="+")
 
     def _selected(self):
         out = []

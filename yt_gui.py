@@ -322,7 +322,7 @@ class YTdlpGUI(tk.Tk):
         self.found_wrap = tk.Frame(self.found_card, bg=BG)
         self.found_wrap.pack(fill="x", padx=10, pady=(0, 8))
         self.found_canvas = tk.Canvas(self.found_wrap, bg=PANEL,
-                                      highlightthickness=0, height=120)
+                                      highlightthickness=0, height=240)
         self.found_sb = ttk.Scrollbar(self.found_wrap, orient="vertical",
                                       command=self.found_canvas.yview,
                                       style="Vertical.TScrollbar")
@@ -342,7 +342,7 @@ class YTdlpGUI(tk.Tk):
         self.found_card.pack_forget()
 
         # --- What to get ---
-        self._section(body, "What to get")
+        self.what_section = self._section(body, "What to get")
         self.var_mp4 = tk.BooleanVar(value=True)
         self.var_vid = tk.BooleanVar(value=False)
         self.var_aud = tk.BooleanVar(value=False)
@@ -536,6 +536,7 @@ class YTdlpGUI(tk.Tk):
         row.pack(fill="x", pady=(10, 0))
         tk.Label(row, text=text.upper(), bg=BG, fg=MUTED,
                  font=(FONT, 8, "bold")).pack(side="left")
+        return row
 
     # ---------------- misc ----------------
     def _wheel(self, e):
@@ -761,7 +762,7 @@ class YTdlpGUI(tk.Tk):
         for w in self.found_inner.winfo_children():
             w.destroy()
         self._thumbs = []
-        self.found_card.pack(fill="x", pady=(0, 6))
+        self.found_card.pack(fill="x", pady=(0, 6), before=self.what_section)
         if not self.links:
             tk.Label(self.found_inner,
                      text="No videos found. Check the link, then press Preview titles again.",

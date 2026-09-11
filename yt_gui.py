@@ -102,7 +102,10 @@ HELP_TEXT = (
     "\u2022 Subtitles: embedded into the MP4 when that is selected, otherwise written as "
     "separate .srt/.vtt files (plain text, open in Notepad).\n"
     "\u2022 Files are saved to the folder under \u201cSave to\u201d. Watch the Activity area "
-    "for live progress."
+    "for live progress.\n"
+    "\u2022 If lookups or downloads fail with a \u201cgetaddrinfo / failed to resolve\u201d "
+    "message, that\u2019s a network/DNS problem, not the app \u2014 try turning off any "
+    "VPN, or set your DNS to 1.1.1.1 / 8.8.8.8, then run \u201cipconfig /flushdns\u201d."
 )
 
 
@@ -1105,6 +1108,8 @@ class YTdlpGUI(tk.Tk):
         except OSError:
             pass
         args = [YDLP, "--newline", "--no-warnings", "--no-mtime",
+                "--retries", "20", "--fragment-retries", "20",
+                "--socket-timeout", "30",
                 "-P", out, "-o", "%(title).120s [%(id)s].%(ext)s"]
         if getattr(self, "ffmpeg", None):
             args += ["--ffmpeg-location", self.ffmpeg]

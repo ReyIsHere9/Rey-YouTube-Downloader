@@ -898,18 +898,19 @@ class YTdlpGUI(tk.Tk):
         for i, url in enumerate(urls, 1):
             self._set_status(f"Looking up link {i}/{len(urls)}\u2026")
             out = err = ""
+            rc = None
             try:
                 proc = subprocess.run(
                     [YDLP, "--flat-playlist", "--simulate", "--skip-download",
-                     "--no-warnings", "--quiet", "--print", "%(id)s\t%(title)s", url],
+                     "--no-warnings", "--print", "%(id)s\t%(title)s", url],
                     stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
                     encoding="utf-8", errors="replace",
                     creationflags=subprocess.CREATE_NO_WINDOW)
-                out, err = proc.stdout, proc.stderr.strip()
+                out, err, rc = proc.stdout, proc.stderr.strip(), proc.returncode
             except Exception as e:
                 err = str(e)
             entries = []
-            if proc and proc.returncode == 0 and out.strip():
+            if out.strip():
                 for n, line in enumerate(out.splitlines(), 1):
                     if "\t" in line:
                         vid, title = line.split("\t", 1)
@@ -921,10 +922,16 @@ class YTdlpGUI(tk.Tk):
                         break
                     entries.append((n, vid.strip(), title.strip() or f"(video {n})"))
                 total += len(entries)
-            if err:
-                self._log(f"[link {i}] {url}", "warn")
-                self._log(f"   {err[:300]}", "warn")
-            self._log(f"[link {i}] found {len(entries)} video(s):  {url}", "ok")
+            if not entries:
+                # show whatever yt-dlp said, so the reason is visible
+                if err:
+                    self._log(f"[link {i}] lookup failed \u2014 yt-dlp said:", "err")
+                    for ln in err.splitlines()[-8:]:
+                        self._log("    " + ln, "err")
+                else:
+                    self._log(f"[link {i}] no videos returned (exit {rc}).", "err")
+            self._log(f"[link {i}] found {len(entries)} video(s):  {url}",
+                      "ok" if entries else "warn")
             self.links.append({"url": url, "entries": entries})
         self._post(self._preview_done, total)
 
@@ -940,7 +947,9 @@ class YTdlpGUI(tk.Tk):
         self.links = [l for l in self.links if l["entries"]]
         self._render_found()
         if total == 0:
-            self._set_status("No videos found for those link(s).")
+            self._set_status("No videos found \u2014 check the Activity log below "
+                             "for yt-dlp\u2019s reason (often a YouTube bot check or "
+                             "an age-restricted link).")
         else:
             self._set_status(f"Found {total} video(s). Untick any you don't want, "
                              "then press Download.")

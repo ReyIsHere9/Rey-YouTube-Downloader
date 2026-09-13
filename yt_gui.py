@@ -591,6 +591,16 @@ class YTdlpGUI(tk.Tk):
         tk.Label(frow3, text="  srt / vtt = plain text \u2014 open in Notepad",
                  bg=BG, fg="#5A5A5A", font=(FONT, 8)).pack(side="left")
 
+        self.embed_var = tk.BooleanVar(value=True)
+        self.embed_chk = tk.Checkbutton(
+            body,
+            text="Embed subtitles into the video (MP4)  \u2014  untick to save "
+                 "them as separate files",
+            variable=self.embed_var, command=self._sync, bg=BG, fg=TEXT,
+            selectcolor=CARD_ON, activebackground=BG, activeforeground=TEXT,
+            font=(FONT, 9), highlightthickness=0)
+        self.embed_chk.pack(anchor="w", pady=(2, 0))
+
         # --- destination ---
         self._section(body, "Save to")
         drow = tk.Frame(body, bg=BG)
@@ -741,6 +751,9 @@ class YTdlpGUI(tk.Tk):
         self.sub_box.configure(state=st)
         self.subfmt.configure(state="readonly" if self.sub_var.get() else "disabled")
         self.auto_chk.configure(state=st)
+        embed_ok = self.sub_var.get() and self.var_mp4.get()
+        self.embed_chk.configure(state="normal" if embed_ok else "disabled")
+        self.embed_chk.configure(fg=TEXT if embed_ok else "#555")
 
     def _invalidate(self):
         self.sig = None
@@ -1140,7 +1153,11 @@ class YTdlpGUI(tk.Tk):
                   "--embed-thumbnail", "--embed-metadata"]
             if subs:
                 a += self._sub_lang_args()
-                a += ["--embed-subs", "--convert-subs", "srt"]
+                if self.embed_var.get():
+                    a += ["--embed-subs", "--convert-subs", "srt"]
+                else:
+                    # keep the MP4, but write the subtitles as separate files
+                    a += ["--write-subs", "--convert-subs", self.subfmt.get() or "srt"]
             tasks.append(("MP4 (video + audio)", items(a)))
         if vid:
             a = self._base(out) + ["-f", "bv*"]
